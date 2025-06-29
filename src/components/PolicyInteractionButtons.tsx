@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { Heart, Bookmark, MessageCircle, Share2 } from 'lucide-react';
-import { useUser } from '@supabase/auth-helpers-react';
+import { useUser } from '@/contexts/AuthContext';
 
 interface PolicyInteractionButtonsProps {
   policyId: number;
