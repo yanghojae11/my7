@@ -1,0 +1,14 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /404
+Disallow: /500
+
+# Host
+Host: https://bitsonic.co.kr
+
+# Sitemaps
+Sitemap: https://bitsonic.co.kr/sitemap.xml

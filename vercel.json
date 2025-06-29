@@ -1,0 +1,28 @@
+{
+  "functions": {
+    "app/article/[slug]/page.tsx": {
+      "maxDuration": 60 
+    },
+    "app/page.tsx": {
+      "maxDuration": 60 
+    }
+
+  },
+  "crons": [
+    {
+      "path": "/api/revalidate",
+      "schedule": "0 0 * * *"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "s-maxage=86400"
+        }
+      ]
+    }
+  ]
+}
