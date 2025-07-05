@@ -4,11 +4,12 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Clock, ExternalLink, FileText, Users, DollarSign, Calendar, Building2 } from 'lucide-react';
+import { Clock, ExternalLink, FileText, DollarSign, Calendar, Building2 } from 'lucide-react';
 import { getPolicyBySlug } from '@/lib/policies';
 import PolicyInteractionButtons from '@/components/PolicyInteractionButtons';
 import PolicyComments from '@/components/PolicyComments';
-import { PolicyWithDetails } from '@/types/database';
+import PolicyKeyPointsGallery from '@/components/PolicyKeyPointsGallery';
+import TargetAudienceTags from '@/components/TargetAudienceTags';
 
 interface PolicyPageProps {
   params: {
@@ -33,7 +34,8 @@ export async function generateMetadata({ params }: PolicyPageProps): Promise<Met
     openGraph: {
       title: policy.title,
       description: policy.summary || policy.content.substring(0, 160),
-      images: policy.featured_image_url ? [policy.featured_image_url] : [],
+      images: policy.additional_images?.length ? [policy.additional_images[0]].filter(Boolean) : 
+              policy.featured_image_url ? [policy.featured_image_url] : [],
       type: 'article',
       publishedTime: policy.published_at || undefined,
       modifiedTime: policy.updated_at,
@@ -43,7 +45,8 @@ export async function generateMetadata({ params }: PolicyPageProps): Promise<Met
       card: 'summary_large_image',
       title: policy.title,
       description: policy.summary || policy.content.substring(0, 160),
-      images: policy.featured_image_url ? [policy.featured_image_url] : [],
+      images: policy.additional_images?.length ? [policy.additional_images[0]].filter(Boolean) : 
+              policy.featured_image_url ? [policy.featured_image_url] : [],
     },
   };
 }
@@ -92,13 +95,17 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
                 </span>
               )}
               <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                policy.policy_type === 'subsidy' ? 'bg-green-100 text-green-800' :
+                policy.policy_type === 'information' ? 'bg-blue-100 text-blue-800' :
                 policy.policy_type === 'support' ? 'bg-purple-100 text-purple-800' :
+                policy.policy_type === 'benefit' ? 'bg-green-100 text-green-800' :
+                policy.policy_type === 'subsidy' ? 'bg-yellow-100 text-yellow-800' :
                 policy.policy_type === 'regulation' ? 'bg-orange-100 text-orange-800' :
                 'bg-gray-100 text-gray-800'
               }`}>
-                {policy.policy_type === 'subsidy' ? '💰 지원금' :
+                {policy.policy_type === 'information' ? '📋 정보' :
                  policy.policy_type === 'support' ? '🤝 지원' :
+                 policy.policy_type === 'benefit' ? '💝 혜택' :
+                 policy.policy_type === 'subsidy' ? '💰 지원금' :
                  policy.policy_type === 'regulation' ? '📋 규정' :
                  '📢 공지'}
               </span>
@@ -114,6 +121,13 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
               <p className="text-lg text-gray-700 leading-relaxed mb-6">
                 {policy.summary}
               </p>
+            )}
+
+            {/* 대상 태그 */}
+            {policy.target_audience && policy.target_audience.length > 0 && (
+              <div className="mb-6">
+                <TargetAudienceTags audiences={policy.target_audience} size="md" />
+              </div>
             )}
 
             {/* 메타 정보 */}
@@ -160,23 +174,22 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
             </div>
           )}
 
+          {/* 핵심 포인트 이미지 갤러리 */}
+          {policy.additional_images && policy.additional_images.length > 0 && (
+            <div className="px-6 sm:px-8 mb-8">
+              <PolicyKeyPointsGallery 
+                images={policy.additional_images}
+                title={policy.title}
+              />
+            </div>
+          )}
+
           {/* 정책 상세 정보 */}
-          {(policy.target_audience?.length || policy.support_amount || policy.application_period_start || policy.application_url) && (
+          {(policy.support_amount || policy.application_period_start || policy.application_url) && (
             <div className="px-6 sm:px-8 mb-6">
               <div className="bg-blue-50 rounded-lg p-4 sm:p-6">
                 <h3 className="text-lg font-semibold text-blue-900 mb-4">📋 정책 정보</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {policy.target_audience?.length && (
-                    <div>
-                      <dt className="flex items-center gap-2 text-sm font-medium text-blue-800 mb-1">
-                        <Users size={16} />
-                        대상자
-                      </dt>
-                      <dd className="text-sm text-blue-700">
-                        {policy.target_audience.join(', ')}
-                      </dd>
-                    </div>
-                  )}
                   
                   {policy.support_amount && (
                     <div>
@@ -231,8 +244,10 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
           {/* 본문 내용 */}
           <div className="px-6 sm:px-8 mb-8">
             <div 
-              className="prose prose-gray max-w-none prose-headings:text-gray-900 prose-a:text-blue-600 prose-strong:text-gray-900"
-              dangerouslySetInnerHTML={{ __html: policy.content }}
+              className="prose prose-gray max-w-none prose-headings:text-gray-900 prose-a:text-blue-600 prose-strong:text-gray-900 prose-ul:list-disc prose-ol:list-decimal prose-li:ml-4"
+              dangerouslySetInnerHTML={{ 
+                __html: policy.html_content || policy.content 
+              }}
             />
           </div>
 
@@ -309,6 +324,41 @@ export default async function PolicyPage({ params }: PolicyPageProps) {
           <PolicyComments policyId={policy.id} />
         </div>
       </main>
+
+      {/* 구조화된 데이터 (JSON-LD) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "GovernmentService",
+            name: policy.title,
+            description: policy.summary || policy.content.substring(0, 160),
+            provider: {
+              "@type": "GovernmentOrganization",
+              name: policy.agency?.name || "정부기관",
+              url: policy.agency?.website_url || undefined
+            },
+            serviceType: policy.policy_type,
+            audience: {
+              "@type": "Audience",
+              audienceType: policy.target_audience?.join(", ") || undefined
+            },
+            serviceOutput: policy.support_amount || undefined,
+            availableChannel: {
+              "@type": "ServiceChannel",
+              serviceUrl: policy.application_url || undefined,
+              availabilityStarts: policy.application_period_start || undefined,
+              availabilityEnds: policy.application_period_end || undefined
+            },
+            image: policy.additional_images?.length ? policy.additional_images[0] : 
+                   policy.featured_image_url || undefined,
+            dateCreated: policy.created_at,
+            dateModified: policy.updated_at,
+            keywords: policy.seo_keywords?.join(", ") || policy.keywords?.join(", ") || undefined
+          })
+        }}
+      />
     </div>
   );
 }

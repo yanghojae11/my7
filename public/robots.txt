@@ -8,7 +8,7 @@ Disallow: /404
 Disallow: /500
 
 # Host
-Host: https://bitsonic.co.kr
+Host: https://my7.co.kr
 
 # Sitemaps
-Sitemap: https://bitsonic.co.kr/sitemap.xml
+Sitemap: https://my7.co.kr/sitemap.xml

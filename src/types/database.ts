@@ -48,11 +48,12 @@ export interface Policy {
   slug: string;
   summary?: string;
   content: string;
+  html_content?: string;
   category_id?: number;
   agency_id?: number;
   
   // 정책 메타 정보
-  policy_type: 'subsidy' | 'support' | 'regulation' | 'announcement';
+  policy_type: 'information' | 'support' | 'benefit' | 'subsidy' | 'regulation' | 'announcement';
   target_audience?: string[];
   eligibility_criteria?: string;
   application_period_start?: string;
@@ -60,6 +61,10 @@ export interface Policy {
   support_amount?: string;
   application_url?: string;
   required_documents?: string[];
+  
+  // VPS 크롤러 추가 필드
+  additional_images?: string[];
+  seo_keywords?: string[];
   
   // SEO 및 메타데이터
   meta_title?: string;
@@ -273,7 +278,7 @@ export interface Database {
       [_ in never]: never;
     };
     Enums: {
-      policy_type: 'subsidy' | 'support' | 'regulation' | 'announcement';
+      policy_type: 'information' | 'support' | 'benefit' | 'subsidy' | 'regulation' | 'announcement';
       policy_status: 'draft' | 'published' | 'archived';
     };
   };
@@ -298,6 +303,9 @@ export type AgencyWithPolicies = GovernmentAgency & {
   policies?: Policy[];
   policy_count?: number;
 };
+
+// VPS 크롤러 데이터와 호환되는 PolicyArticle 타입
+export type PolicyArticle = Policy;
 
 // API 응답 타입
 export interface ApiResponse<T> {
