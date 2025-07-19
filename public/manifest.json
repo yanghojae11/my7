@@ -1,22 +1,22 @@
-cat > public/manifest.json << 'EOF'
 {
-  "name": "코인 인사이트 - Bitsonic",
-  "short_name": "코인인사이트",
-  "description": "실시간 암호화폐 뉴스 & 시장 분석 플랫폼",
+  "name": "MY7 정책지원 - 정부 정책 및 지원사업 종합 정보",
+  "short_name": "MY7 정책지원",
+  "description": "정부 정책, 지원사업, 보조금, 창업지원, 주택정책, 취업지원, 교육정책, 복지혜택 등 정부 지원 정보를 한눈에 확인하세요.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a2332",
-  "theme_color": "#5fb3c1",
+  "background_color": "#f9fafb",
+  "theme_color": "#1D4ED8",
   "orientation": "portrait-primary",
+  "lang": "ko",
   "icons": [
-    {
-      "src": "/favicon.ico",
-      "sizes": "16x16 32x32",
-      "type": "image/x-icon"
-    },
     {
       "src": "/favicon.svg",
       "sizes": "32x32",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "24x24",
       "type": "image/svg+xml"
     },
     {
@@ -29,6 +29,6 @@ cat > public/manifest.json << 'EOF'
       "sizes": "240x60",
       "type": "image/svg+xml"
     }
-  ]
+  ],
+  "categories": ["government", "news", "education"]
 }
-EOF

@@ -29,7 +29,7 @@ export default function Privacy() {
         </p>
         <h2 className="font-bold">6. 쿠키(Cookie) 운용</h2>
         <p>
-          - 사이트 운영 및 광고 서비스(예: Google AdSense) 제공을 위해 쿠키를 사용<br/>
+          - 사이트 운영 및 서비스 개선을 위해 쿠키를 사용<br/>
           - 이용자는 브라우저 설정을 통해 쿠키 저장 거부 가능
         </p>
         <h2 className="font-bold">7. 개인정보 보호책임자</h2>

@@ -78,21 +78,25 @@ const SectionCardList: React.FC<SectionCardListProps> = ({ cards }) => {
           <Link key={card.url || index} href={card.url} className="block group">
             <article className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 hover:border-gray-200 h-full">
               <div className="relative w-full aspect-[4/3] overflow-hidden">
-                {typeof card.image === 'string' && card.image.startsWith('/placeholder-') ? (
+                {card.image && typeof card.image === 'string' && card.image.startsWith('/placeholder-') ? (
                   <img
                     src={card.image}
-                    alt={card.title}
+                    alt={card.title || '정책 이미지'}
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
-                ) : (
+                ) : card.image && typeof card.image === 'string' ? (
                   <OptimizedImage
-                    src={typeof card.image === 'string' ? card.image : (card.image as unknown as string)}
-                    alt={card.title}
+                    src={card.image}
+                    alt={card.title || '정책 이미지'}
                     fill
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                     priority={index < 8}
                   />
+                ) : (
+                  <div className="absolute inset-0 w-full h-full bg-gray-200 flex items-center justify-center">
+                    <span className="text-gray-400 text-sm">이미지 없음</span>
+                  </div>
                 )}
                 {/* 호버 오버레이 */}
                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
@@ -105,10 +109,10 @@ const SectionCardList: React.FC<SectionCardListProps> = ({ cards }) => {
                   </span>
                 )}
                 <h3 className="text-sm font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2 mb-2 leading-relaxed">
-                  {card.title}
+                  {card.title || '제목 없음'}
                 </h3>
                 <p className="text-xs text-gray-600 line-clamp-3 leading-relaxed">
-                  {card.summary}
+                  {card.summary || '요약 없음'}
                 </p>
               </div>
             </article>

@@ -5,8 +5,6 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { AuthProvider } from '@/contexts/AuthContext';
-import Script from 'next/script';
-import AdRefresh from '@/components/AdRefresh';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -125,7 +123,6 @@ export default function RootLayout({
         {/* DNS Prefetch 최적화 */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//qfqwqvcmvbyxgzpokkla.supabase.co" />
-        <link rel="dns-prefetch" href="//pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         
         {/* Favicon 및 아이콘 - ICO 제거 버전 */}
@@ -139,20 +136,12 @@ export default function RootLayout({
         <meta name="theme-color" content="#1D4ED8" />
         <meta name="color-scheme" content="light dark" />
         
-        {/* Google AdSense Auto-Ads */}
-        <Script
-          id="google-adsense"
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
-        />
       </head>
       <body className={`${inter.className} antialiased`}>
         <AuthProvider>
           <div className="flex flex-col min-h-screen bg-gray-50">
             <Navbar />
             <main className="flex-1 overflow-x-hidden">
-              <AdRefresh />
               {children}
             </main>
             <Footer />
