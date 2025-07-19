@@ -42,11 +42,11 @@ export async function GET(request: NextRequest) {
     
     if (searchTerms.length === 1) {
       // Single term search
-      query = query.or(`title.ilike.%${searchTerms[0]}%,content.ilike.%${searchTerms[0]}%`);
+      query = query.or(`title.ilike.%${searchTerms[0]}%,body.ilike.%${searchTerms[0]}%`);
     } else {
-      // Multiple terms - search for any term in title or content
+      // Multiple terms - search for any term in title or body
       const orConditions = searchTerms.map(term => 
-        `title.ilike.%${term}%,content.ilike.%${term}%`
+        `title.ilike.%${term}%,body.ilike.%${term}%`
       ).join(',');
       query = query.or(orConditions);
     }
@@ -74,12 +74,12 @@ export async function GET(request: NextRequest) {
     // If we have articles and keywords field exists, do additional filtering
     if (filteredArticles.length > 0 && searchTerms.length > 0) {
       filteredArticles = filteredArticles.filter(article => {
-        // Check if any search term matches the title, content, or keywords
+        // Check if any search term matches the title, body, or keywords
         return searchTerms.some(term => {
           const termLower = term.toLowerCase();
           return (
             article.title?.toLowerCase().includes(termLower) ||
-            article.content?.toLowerCase().includes(termLower) ||
+            article.body?.toLowerCase().includes(termLower) ||
             (Array.isArray(article.keywords) && 
              article.keywords.some(keyword => keyword.toLowerCase().includes(termLower)))
           );
@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     if (keywords && keywords.trim()) {
       const searchTerms = keywords.toLowerCase().split(' ').filter((term: string) => term.length > 0);
       const orConditions = searchTerms.map((term: string) => 
-        `title.ilike.%${term}%,content.ilike.%${term}%`
+        `title.ilike.%${term}%,body.ilike.%${term}%`
       ).join(',');
       query = query.or(orConditions);
     }

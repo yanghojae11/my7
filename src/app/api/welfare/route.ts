@@ -59,10 +59,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     
     // Validate required fields
-    if (!body.title || !body.content) {
+    if (!body.title || !body.body) {
       return NextResponse.json({
         success: false,
-        error: 'Title and content are required'
+        error: 'Title and body are required'
       }, { status: 400 });
     }
 
@@ -76,15 +76,15 @@ export async function POST(request: NextRequest) {
     const articleData = {
       title: body.title,
       slug,
-      content: body.content,
-      html_content: body.html_content || body.content,
+      body: body.body,
+      html_content: body.html_content || body.body,
       category: 'welfare-benefits',
       image_url: body.image_url || null,
       keywords: body.keywords || [],
       original_url: body.original_url || null,
-      original_source: body.original_source || 'manual',
+      source: body.source || 'manual',
       status: body.status || 'published',
-      word_count: body.content.length,
+      word_count: body.body ? body.body.length : 0,
       view_count: 0
     };
 

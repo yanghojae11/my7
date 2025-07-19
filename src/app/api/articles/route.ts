@@ -74,8 +74,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 데이터 파싱
-    const body = await req.json();
-    const { title, url, content, date, category, keywords, image_url } = body;
+    const requestBody = await req.json();
+    const { title, url, content, date, category, keywords, image_url } = requestBody;
 
     // Validate required fields
     if (!title || !content) {
@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
       .insert({
         title,
         slug,
-        content,
+        body: content,
         html_content: content,
         category: category || 'general',
         original_url: url || null,
