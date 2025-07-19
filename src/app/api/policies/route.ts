@@ -22,20 +22,30 @@ export async function GET(request: NextRequest) {
       sort_order: searchParams.get('sort_order') as any || 'desc'
     };
 
-    // 쿼리 빌더 시작
+    // 쿼리 빌더 시작 - 필요한 필드만 선택
     let query = supabase
       .from('policies')
       .select(`
-        *,
-        category:policy_categories(*),
-        agency:government_agencies(*),
-        author:profiles(*)
+        id,
+        title,
+        slug,
+        summary,
+        policy_type,
+        target_audience,
+        created_at,
+        updated_at,
+        published_at,
+        view_count,
+        like_count,
+        additional_images,
+        category:policy_categories(id, name, slug),
+        agency:government_agencies(id, name, slug)
       `, { count: 'exact' })
       .eq('status', params.status);
 
-    // 검색어 필터
+    // 검색어 필터 - 텍스트 검색 최적화
     if (params.query) {
-      query = query.or(`title.ilike.%${params.query}%,summary.ilike.%${params.query}%,content.ilike.%${params.query}%`);
+      query = query.or(`title.ilike.%${params.query}%,summary.ilike.%${params.query}%`);
     }
 
     // 카테고리 필터
@@ -53,13 +63,18 @@ export async function GET(request: NextRequest) {
       query = query.eq('policy_type', params.policy_type);
     }
 
-    // 대상자 필터
+    // 대상자 필터 - 배열 포함 검색
     if (params.target_audience) {
-      query = query.contains('target_audience', [params.target_audience]);
+      query = query.overlaps('target_audience', [params.target_audience]);
     }
 
-    // 정렬
+    // 정렬 - 인덱스 활용
     query = query.order(params.sort_by, { ascending: params.sort_order === 'asc' });
+    
+    // 성능 최적화를 위한 보조 정렬
+    if (params.sort_by !== 'id') {
+      query = query.order('id', { ascending: false });
+    }
 
     // 페이지네이션
     const from = (params.page - 1) * params.per_page;
@@ -78,8 +93,9 @@ export async function GET(request: NextRequest) {
     const total_pages = Math.ceil((count || 0) / params.per_page);
 
     return NextResponse.json({
+      success: true,
       data: data || [],
-      count: count || 0,
+      total: count || 0,
       page: params.page,
       per_page: params.per_page,
       total_pages,
@@ -194,7 +210,7 @@ async function createPolicyTagRelations(policyId: number, tags: string[]) {
       const slug = generateSlug(tagName);
       
       // 기존 태그 확인
-      let { data: existingTag } = await supabase
+      const { data: existingTag } = await supabase
         .from('policy_tags')
         .select('id')
         .eq('slug', slug)

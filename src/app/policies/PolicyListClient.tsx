@@ -1,14 +1,18 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, lazy, Suspense, useMemo, memo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import CategoryFilter, { FilterState } from '@/components/CategoryFilter';
-import PolicySummaryCard from '@/components/PolicySummaryCard';
-import PolicyKeyPointsGallery from '@/components/PolicyKeyPointsGallery';
+import { FilterState } from '@/components/CategoryFilter';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
+import VirtualizedList from '@/components/VirtualizedList';
+import { memoryCache, createCacheKey } from '@/lib/cache';
+
+const CategoryFilter = lazy(() => import('@/components/CategoryFilter'));
+const PolicySummaryCard = lazy(() => import('@/components/PolicySummaryCard'));
+const PolicyKeyPointsGallery = lazy(() => import('@/components/PolicyKeyPointsGallery'));
 import { PolicyArticle } from '@/types/database';
 
-export default function PolicyListClient() {
+function PolicyListClient() {
   const [policies, setPolicies] = useState<PolicyArticle[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
@@ -19,11 +23,11 @@ export default function PolicyListClient() {
   const router = useRouter();
 
   const [filters, setFilters] = useState<FilterState>({
-    query: searchParams.get('q') || '',
-    selectedCategories: searchParams.get('categories')?.split(',').filter(Boolean) || [],
-    selectedAudiences: searchParams.get('audiences')?.split(',').filter(Boolean) || [],
-    selectedPolicyTypes: searchParams.get('types')?.split(',').filter(Boolean) || [],
-    sortBy: (searchParams.get('sort') as FilterState['sortBy']) || 'latest'
+    query: searchParams?.get('q') || '',
+    selectedCategories: searchParams?.get('categories')?.split(',').filter(Boolean) || [],
+    selectedAudiences: searchParams?.get('audiences')?.split(',').filter(Boolean) || [],
+    selectedPolicyTypes: searchParams?.get('types')?.split(',').filter(Boolean) || [],
+    sortBy: (searchParams?.get('sort') as FilterState['sortBy']) || 'latest'
   });
 
   const updateURL = useCallback((newFilters: FilterState) => {
@@ -61,13 +65,32 @@ export default function PolicyListClient() {
         filters.selectedPolicyTypes.forEach(type => params.append('types', type));
       }
 
+      // 캐시 키 생성
+      const cacheKey = createCacheKey('policies', { params: params.toString(), page });
+      
+      // 캐시에서 먼저 확인
+      const cached = memoryCache.get(cacheKey);
+      if (cached && page === 1) {
+        setPolicies(cached.data);
+        setTotalCount(cached.total);
+        setCurrentPage(page);
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`/api/policies?${params}`);
       const data = await response.json();
 
       if (data.success) {
-        setPolicies(page === 1 ? data.data : [...policies, ...data.data]);
+        const newPolicies = page === 1 ? data.data : [...policies, ...data.data];
+        setPolicies(newPolicies);
         setTotalCount(data.total);
         setCurrentPage(page);
+        
+        // 첫 페이지만 캐시에 저장 (5분)
+        if (page === 1) {
+          memoryCache.set(cacheKey, { data: data.data, total: data.total }, 300000);
+        }
       } else {
         console.error('Failed to fetch policies:', data.error);
       }
@@ -108,7 +131,7 @@ export default function PolicyListClient() {
     }
   };
 
-  const getFeaturedPolicyImages = () => {
+  const getFeaturedPolicyImages = useMemo(() => {
     const images: string[] = [];
     featuredPolicies.forEach(policy => {
       if (policy.additional_images && policy.additional_images.length > 0) {
@@ -116,29 +139,33 @@ export default function PolicyListClient() {
       }
     });
     return images.slice(0, 6);
-  };
+  }, [featuredPolicies]);
 
   return (
     <div className="space-y-6">
       {/* 필터 섹션 */}
-      <CategoryFilter
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        resultsCount={totalCount}
-        isLoading={loading}
-      />
+      <Suspense fallback={<LoadingSkeleton type="cards" />}>
+        <CategoryFilter
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          resultsCount={totalCount}
+          isLoading={loading}
+        />
+      </Suspense>
 
       {/* 주요 정책 핵심 포인트 갤러리 */}
-      {featuredPolicies.length > 0 && getFeaturedPolicyImages().length > 0 && (
+      {featuredPolicies.length > 0 && getFeaturedPolicyImages.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               💡 주요 정책 핵심 포인트
             </h2>
-            <PolicyKeyPointsGallery 
-              images={getFeaturedPolicyImages()}
-              title="주요 정책 핵심 포인트"
-            />
+            <Suspense fallback={<LoadingSkeleton type="cards" />}>
+              <PolicyKeyPointsGallery 
+                images={getFeaturedPolicyImages}
+                title="주요 정책 핵심 포인트"
+              />
+            </Suspense>
           </div>
         </div>
       )}
@@ -168,38 +195,27 @@ export default function PolicyListClient() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {policies.map((policy, index) => (
-                  <PolicySummaryCard 
-                    key={`${policy.id}-${index}`}
-                    policy={policy}
-                    showImages={true}
-                    variant="default"
-                  />
-                ))}
-              </div>
-            )}
-
-            {/* 더 보기 버튼 */}
-            {policies.length < totalCount && (
-              <div className="text-center pt-6">
-                <button
-                  onClick={handleLoadMore}
-                  disabled={loading}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
-                      </svg>
-                      로딩 중...
-                    </span>
-                  ) : (
-                    `더 보기 (${policies.length}/${totalCount})`
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+                <VirtualizedList
+                  items={policies}
+                  itemHeight={200}
+                  containerHeight={800}
+                  renderItem={(policy, index) => (
+                    <div className="p-4 border-b border-gray-100 last:border-b-0">
+                      <Suspense fallback={<LoadingSkeleton type="cards" />}>
+                        <PolicySummaryCard 
+                          policy={policy}
+                          showImages={true}
+                          variant="default"
+                        />
+                      </Suspense>
+                    </div>
                   )}
-                </button>
+                  onLoadMore={handleLoadMore}
+                  hasMore={policies.length < totalCount}
+                  loading={loading}
+                  overscan={3}
+                />
               </div>
             )}
           </>
@@ -215,12 +231,13 @@ export default function PolicyListClient() {
             </h2>
             <div className="grid gap-4 md:grid-cols-2">
               {featuredPolicies.slice(0, 4).map((policy) => (
-                <PolicySummaryCard 
-                  key={policy.id}
-                  policy={policy}
-                  showImages={true}
-                  variant="compact"
-                />
+                <Suspense key={policy.id} fallback={<LoadingSkeleton type="card" />}>
+                  <PolicySummaryCard 
+                    policy={policy}
+                    showImages={true}
+                    variant="compact"
+                  />
+                </Suspense>
               ))}
             </div>
           </div>
@@ -229,3 +246,5 @@ export default function PolicyListClient() {
     </div>
   );
 }
+
+export default memo(PolicyListClient);

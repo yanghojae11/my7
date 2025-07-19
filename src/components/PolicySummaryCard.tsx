@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, memo, useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import OptimizedImage from './OptimizedImage';
 import { Calendar, Building2, Eye, Heart, ChevronRight, Share2 } from 'lucide-react';
 import { PolicyArticle } from '@/types/database';
 import TargetAudienceTags from './TargetAudienceTags';
@@ -32,7 +32,7 @@ const policyTypeColors = {
   announcement: 'bg-gray-100 text-gray-800'
 } as const;
 
-export default function PolicySummaryCard({ 
+function PolicySummaryCard({ 
   policy, 
   showImages = true, 
   variant = 'default',
@@ -40,13 +40,21 @@ export default function PolicySummaryCard({
 }: PolicySummaryCardProps) {
   const [imageError, setImageError] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
+  const formatDate = useMemo(() => {
+    return new Date(policy.created_at).toLocaleDateString('ko-KR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-  };
+  }, [policy.created_at]);
+
+  const policyTypeStyle = useMemo(() => {
+    return policyTypeColors[policy.policy_type];
+  }, [policy.policy_type]);
+
+  const policyTypeLabel = useMemo(() => {
+    return policyTypeLabels[policy.policy_type];
+  }, [policy.policy_type]);
 
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -76,8 +84,8 @@ export default function PolicySummaryCard({
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-2">
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${policyTypeColors[policy.policy_type]}`}>
-                {policyTypeLabels[policy.policy_type]}
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${policyTypeStyle}`}>
+                {policyTypeLabel}
               </span>
               {policy.target_audience && (
                 <TargetAudienceTags audiences={policy.target_audience} size="sm" />
@@ -94,13 +102,13 @@ export default function PolicySummaryCard({
           </div>
           {showImages && policy.additional_images && policy.additional_images[0] && !imageError && (
             <div className="w-16 h-16 flex-shrink-0">
-              <Image
+              <OptimizedImage
                 src={policy.additional_images[0]}
                 alt={policy.title}
                 width={64}
                 height={64}
                 className="w-full h-full object-cover rounded-lg"
-                onError={() => setImageError(true)}
+                sizes="64px"
               />
             </div>
           )}
@@ -117,16 +125,16 @@ export default function PolicySummaryCard({
       >
         {showImages && policy.additional_images && policy.additional_images[0] && !imageError && (
           <div className="relative h-48 bg-gray-100">
-            <Image
+            <OptimizedImage
               src={policy.additional_images[0]}
               alt={policy.title}
               fill
               className="object-cover"
-              onError={() => setImageError(true)}
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
             <div className="absolute top-4 left-4">
-              <span className={`px-3 py-1 text-sm font-medium rounded-full ${policyTypeColors[policy.policy_type]}`}>
-                {policyTypeLabels[policy.policy_type]}
+              <span className={`px-3 py-1 text-sm font-medium rounded-full ${policyTypeStyle}`}>
+                {policyTypeLabel}
               </span>
             </div>
           </div>
@@ -158,7 +166,7 @@ export default function PolicySummaryCard({
               )}
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                <span>{formatDate(policy.created_at)}</span>
+                <span>{formatDate}</span>
               </div>
             </div>
             <button
@@ -183,8 +191,8 @@ export default function PolicySummaryCard({
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-3">
-              <span className={`px-2 py-1 text-xs font-medium rounded-full ${policyTypeColors[policy.policy_type]}`}>
-                {policyTypeLabels[policy.policy_type]}
+              <span className={`px-2 py-1 text-xs font-medium rounded-full ${policyTypeStyle}`}>
+                {policyTypeLabel}
               </span>
               {policy.target_audience && (
                 <TargetAudienceTags audiences={policy.target_audience} size="sm" />
@@ -210,7 +218,7 @@ export default function PolicySummaryCard({
               )}
               <div className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                <span>{formatDate(policy.created_at)}</span>
+                <span>{formatDate}</span>
               </div>
               <div className="flex items-center gap-1">
                 <Eye className="w-4 h-4" />
@@ -225,13 +233,13 @@ export default function PolicySummaryCard({
           
           {showImages && policy.additional_images && policy.additional_images[0] && !imageError && (
             <div className="w-24 h-24 flex-shrink-0">
-              <Image
+              <OptimizedImage
                 src={policy.additional_images[0]}
                 alt={policy.title}
                 width={96}
                 height={96}
                 className="w-full h-full object-cover rounded-lg"
-                onError={() => setImageError(true)}
+                sizes="96px"
               />
             </div>
           )}
@@ -255,3 +263,5 @@ export default function PolicySummaryCard({
     </Link>
   );
 }
+
+export default memo(PolicySummaryCard);

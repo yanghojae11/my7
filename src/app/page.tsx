@@ -28,7 +28,20 @@ import {
 } from "@/types/article";
 
 // ISR 설정 - 정책 업데이트 주기에 맞춰 조정
-export const revalidate = 1800; // 30분마다 재생성
+export const revalidate = 900; // 15분마다 재생성
+
+// 정적 생성을 위한 메타데이터 설정
+export const metadata = {
+  title: 'MY7 정책지원 - 정부 정책 및 지원사업 종합 정보',
+  description: '창업지원, 주택정책, 취업지원, 교육정책, 복지혜택, 정부지원금 등 모든 정책을 한눈에 확인하세요.',
+  keywords: ['정부정책', '지원사업', '창업지원', '주택정책', '취업지원', '교육정책', '복지혜택', '정부지원금'],
+  openGraph: {
+    title: 'MY7 정책지원 - 정부 정책 및 지원사업 종합 정보',
+    description: '창업지원, 주택정책, 취업지원, 교육정책, 복지혜택, 정부지원금 등 모든 정책을 한눈에 확인하세요.',
+    type: 'website',
+    locale: 'ko_KR',
+  },
+};
 
 // 이미지 URL 처리 함수
 const getImageUrlForDisplay = (imageUrl: string | null): string => {
@@ -45,7 +58,7 @@ const getImageUrlForDisplay = (imageUrl: string | null): string => {
 
 export default async function Home() {
   try {
-    // 병렬로 모든 데이터 가져오기
+    // 병렬로 모든 데이터 가져오기 - 성능 최적화
     const [
       featuredPolicies,
       startupPolicies,
@@ -54,6 +67,7 @@ export default async function Home() {
       educationPolicies,
       welfarePolicies,
       subsidyPolicies,
+      policyNewsPolicies,
       popularPolicies,
       categories
     ] = await Promise.all([
@@ -77,6 +91,9 @@ export default async function Home() {
       
       // 정부 지원금
       getPoliciesByCategory('government-subsidies', 12),
+      
+      // 정책 뉴스
+      getPoliciesByCategory('policy-news', 12),
       
       // 인기 정책 (조회수 기준)
       getPopularPolicies(10),
@@ -110,6 +127,7 @@ export default async function Home() {
     const educationCards = convertToCardItems(educationPolicies);
     const welfareCards = convertToCardItems(welfarePolicies);
     const subsidyCards = convertToCardItems(subsidyPolicies);
+    const policyNewsCards = convertToCardItems(policyNewsPolicies);
 
     // 정부 정책 트렌드 키워드 (실제로는 DB에서 가져오거나 분석 가능)
     const keywordTrends: TrendItem[] = [
@@ -214,6 +232,25 @@ export default async function Home() {
                   ) : (
                     <div className="p-6 text-center text-gray-500">
                       복지 혜택 정보를 불러오는 중입니다...
+                    </div>
+                  )}
+                </Suspense>
+              </section>
+
+              {/* 정책 뉴스 섹션 */}
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
+                  📰 정책 뉴스
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    (전체 {policyNewsCards.length}개)
+                  </span>
+                </h2>
+                <Suspense fallback={<LoadingSkeleton type="cards" />}>
+                  {policyNewsCards.length > 0 ? (
+                    <SectionCardList cards={policyNewsCards} />
+                  ) : (
+                    <div className="p-6 text-center text-gray-500">
+                      정책 뉴스를 불러오는 중입니다...
                     </div>
                   )}
                 </Suspense>

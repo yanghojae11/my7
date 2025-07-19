@@ -208,7 +208,7 @@ async function updatePolicyTagRelations(policyId: number, tags: string[]) {
         const slug = generateSlug(tagName);
         
         // 기존 태그 확인
-        let { data: existingTag } = await supabase
+        const { data: existingTag } = await supabase
           .from('policy_tags')
           .select('id')
           .eq('slug', slug)
