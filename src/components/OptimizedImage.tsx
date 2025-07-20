@@ -17,6 +17,24 @@ interface OptimizedImageProps {
   fallbackSrc?: string;
 }
 
+// URL validation helper
+const isValidImageUrl = (url: string): boolean => {
+  if (!url || typeof url !== 'string' || url.trim() === '') return false;
+  
+  // Check for valid URL pattern
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+    // Allow common image domains and local paths
+    return url.startsWith('/') || 
+           url.startsWith('data:image/') ||
+           ['localhost', 'qfqwqvcmvbyxgzpokkla.supabase.co', 'unsplash.com', 'pexels.com', 'cloudinary.com', 'dicebear.com'].some(domain => 
+             urlObj.hostname.includes(domain)
+           );
+  } catch {
+    return url.startsWith('/'); // Allow local paths
+  }
+};
+
 export default function OptimizedImage({
   src,
   alt,
@@ -28,9 +46,11 @@ export default function OptimizedImage({
   sizes = '100vw',
   fallbackSrc = '/placeholder-card.jpg',
 }: OptimizedImageProps) {
-  const [imgSrc, setImgSrc] = useState(src || fallbackSrc);
+  // Validate and sanitize initial src
+  const validatedSrc = isValidImageUrl(src) ? src : fallbackSrc;
+  const [imgSrc, setImgSrc] = useState(validatedSrc);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
+  const [hasError, setHasError] = useState(!isValidImageUrl(src));
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -38,8 +58,12 @@ export default function OptimizedImage({
   };
 
   const handleError = () => {
-    if (imgSrc !== fallbackSrc) {
+    console.warn(`[OptimizedImage] Failed to load image: ${imgSrc}`);
+    if (imgSrc !== fallbackSrc && isValidImageUrl(fallbackSrc)) {
       setImgSrc(fallbackSrc);
+      setHasError(true);
+    } else {
+      // If fallback also fails, show a placeholder div
       setHasError(true);
     }
     setIsLoading(false);
@@ -79,7 +103,17 @@ export default function OptimizedImage({
         </div>
       )}
       
-      <Image {...imageProps} />
+      {hasError && imgSrc === fallbackSrc ? (
+        // Ultimate fallback when even placeholder fails
+        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center text-gray-400 text-sm">
+          <div className="text-center">
+            <div className="w-8 h-8 mx-auto mb-1 text-gray-300" aria-label="이미지 없음">📷</div>
+            <div>이미지 없음</div>
+          </div>
+        </div>
+      ) : (
+        <Image {...imageProps} />
+      )}
     </div>
   );
 }

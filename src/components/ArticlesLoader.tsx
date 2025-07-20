@@ -180,7 +180,7 @@ export default function ArticlesLoader() {
 
   // Use all articles if specific categories are empty
   const featuredArticles = articles.slice(0, 5);
-  const popularArticles = articles.sort((a, b) => b.view_count - a.view_count).slice(0, 10);
+  const popularArticles = [...articles].sort((a, b) => b.view_count - a.view_count).slice(0, 10);
 
   // Convert to display formats
   const slideItems = featuredArticles.map(article => convertArticleToSlideItem(article));
@@ -189,14 +189,14 @@ export default function ArticlesLoader() {
 
   const convertToCardItems = (articlesList: Article[]) => articlesList.map(article => convertArticleToCardItem(article));
 
-  // Use actual articles or fallback to all articles
-  const startupCards = convertToCardItems(startupArticles.length > 0 ? startupArticles.slice(0, 12) : articles.slice(0, 12));
-  const housingCards = convertToCardItems(housingArticles.length > 0 ? housingArticles.slice(0, 12) : articles.slice(0, 12));
-  const employmentCards = convertToCardItems(employmentArticles.length > 0 ? employmentArticles.slice(0, 12) : articles.slice(0, 12));
-  const educationCards = convertToCardItems(educationArticles.length > 0 ? educationArticles.slice(0, 12) : articles.slice(0, 12));
-  const welfareCards = convertToCardItems(welfareArticles.length > 0 ? welfareArticles.slice(0, 12) : articles.slice(0, 12));
-  const subsidyCards = convertToCardItems(subsidyArticles.length > 0 ? subsidyArticles.slice(0, 12) : articles.slice(0, 12));
-  const policyNewsCards = convertToCardItems(policyNewsArticles.length > 0 ? policyNewsArticles.slice(0, 12) : articles.slice(0, 12));
+  // Only show category sections if they have articles - no fallback to prevent duplicates
+  const startupCards = convertToCardItems(startupArticles.slice(0, 12));
+  const housingCards = convertToCardItems(housingArticles.slice(0, 12));
+  const employmentCards = convertToCardItems(employmentArticles.slice(0, 12));
+  const educationCards = convertToCardItems(educationArticles.slice(0, 12));
+  const welfareCards = convertToCardItems(welfareArticles.slice(0, 12));
+  const subsidyCards = convertToCardItems(subsidyArticles.slice(0, 12));
+  // const policyNewsCards = convertToCardItems(policyNewsArticles.slice(0, 12)); // Unused for now
 
   const keywordTrends = [
     { name: '창업지원', score: 95, change: '+12%' },
@@ -228,139 +228,109 @@ export default function ArticlesLoader() {
           {/* 왼쪽 메인 콘텐츠 영역 */}
           <div className="lg:col-span-2 space-y-6">
             {/* 창업 지원 섹션 */}
-            <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
-                🚀 창업 지원
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  (전체 {startupCards.length}개)
-                </span>
-              </h2>
-              {startupCards.length > 0 ? (
+            {startupCards.length > 0 && (
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
+                  🚀 창업 지원
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    (전체 {startupCards.length}개)
+                  </span>
+                </h2>
                 <SectionCardList cards={startupCards} />
-              ) : (
-                <div className="p-6 text-center text-gray-500">
-                  창업 지원 정보를 불러오는 중입니다...
-                </div>
-              )}
-            </section>
+              </section>
+            )}
 
             {/* 취업 지원 섹션 */}
-            <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
-                💼 취업 지원
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  (전체 {employmentCards.length}개)
-                </span>
-              </h2>
-              {employmentCards.length > 0 ? (
+            {employmentCards.length > 0 && (
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
+                  💼 취업 지원
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    (전체 {employmentCards.length}개)
+                  </span>
+                </h2>
                 <SectionCardList cards={employmentCards} />
-              ) : (
-                <div className="p-6 text-center text-gray-500">
-                  취업 지원 정보를 불러오는 중입니다...
-                </div>
-              )}
-            </section>
+              </section>
+            )}
 
             {/* 교육 정책 섹션 */}
-            <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
-                📚 교육 정책
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  (전체 {educationCards.length}개)
-                </span>
-              </h2>
-              {educationCards.length > 0 ? (
+            {educationCards.length > 0 && (
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
+                  📚 교육 정책
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    (전체 {educationCards.length}개)
+                  </span>
+                </h2>
                 <SectionCardList cards={educationCards} />
-              ) : (
-                <div className="p-6 text-center text-gray-500">
-                  교육 정책 정보를 불러오는 중입니다...
-                </div>
-              )}
-            </section>
+              </section>
+            )}
 
             {/* 복지 혜택 섹션 */}
-            <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
-                🤝 복지 혜택
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  (전체 {welfareCards.length}개)
-                </span>
-              </h2>
-              {welfareCards.length > 0 ? (
+            {welfareCards.length > 0 && (
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
+                  🤝 복지 혜택
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    (전체 {welfareCards.length}개)
+                  </span>
+                </h2>
                 <SectionCardList cards={welfareCards} />
-              ) : (
-                <div className="p-6 text-center text-gray-500">
-                  복지 혜택 정보를 불러오는 중입니다...
-                </div>
-              )}
-            </section>
+              </section>
+            )}
 
             {/* 주택 정책 슬라이더 */}
-            <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
-                🏠 주택 정책
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  (전체 {housingCards.length}개)
-                </span>
-              </h2>
-              {housingCards.length > 0 ? (
+            {housingCards.length > 0 && (
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
+                  🏠 주택 정책
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    (전체 {housingCards.length}개)
+                  </span>
+                </h2>
                 <HorizontalCardSlider cards={housingCards} />
-              ) : (
-                <div className="p-6 text-center text-gray-500">
-                  주택 정책 정보를 불러오는 중입니다...
-                </div>
-              )}
-            </section>
+              </section>
+            )}
 
             {/* 정부 지원금 슬라이더 */}
-            <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
-                💰 정부 지원금
-                <span className="ml-2 text-sm font-normal text-gray-500">
-                  (전체 {subsidyCards.length}개)
-                </span>
-              </h2>
-              {subsidyCards.length > 0 ? (
+            {subsidyCards.length > 0 && (
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900 flex items-center">
+                  💰 정부 지원금
+                  <span className="ml-2 text-sm font-normal text-gray-500">
+                    (전체 {subsidyCards.length}개)
+                  </span>
+                </h2>
                 <HorizontalCardSlider cards={subsidyCards} />
-              ) : (
-                <div className="p-6 text-center text-gray-500">
-                  정부 지원금 정보를 불러오는 중입니다...
-                </div>
-              )}
-            </section>
+              </section>
+            )}
           </div>
 
           {/* 오른쪽 사이드바 */}
           <aside className="lg:col-span-1 space-y-6">
             {/* 인기 정책 */}
-            <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-extrabold mb-4 text-gray-900">📰 인기 정책</h2>
-              {rankingNewsItems.length > 0 ? (
+            {rankingNewsItems.length > 0 && (
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900">📰 인기 정책</h2>
                 <RankingNews ranking={rankingNewsItems} />
-              ) : (
-                <div className="p-3 text-center text-gray-500 text-sm">
-                  인기 정책을 불러오는 중입니다...
-                </div>
-              )}
-            </section>
+              </section>
+            )}
 
             {/* 최신 지원금 */}
-            <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-extrabold mb-4 text-gray-900">🔥 최신 지원금</h2>
-              {feedItems.length > 0 ? (
+            {feedItems.length > 0 && (
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900">🔥 최신 지원금</h2>
                 <RealTimeFeed feed={feedItems} />
-              ) : (
-                <div className="p-3 text-center text-gray-500 text-sm">
-                  최신 지원금 정보를 불러오는 중입니다...
-                </div>
-              )}
-            </section>
+              </section>
+            )}
 
             {/* 인기 지원사업 */}
-            <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-              <h2 className="text-xl font-extrabold mb-4 text-gray-900">🔍 인기 지원사업</h2>
-              <KeywordTrends trends={keywordTrends} />
-            </section>
+            {keywordTrends.length > 0 && (
+              <section className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-extrabold mb-4 text-gray-900">🔍 인기 지원사업</h2>
+                <KeywordTrends trends={keywordTrends} />
+              </section>
+            )}
           </aside>
         </div>
       </main>

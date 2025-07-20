@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
             article.title?.toLowerCase().includes(termLower) ||
             article.body?.toLowerCase().includes(termLower) ||
             (Array.isArray(article.keywords) && 
-             article.keywords.some(keyword => keyword.toLowerCase().includes(termLower)))
+             article.keywords.some((keyword: string) => keyword.toLowerCase().includes(termLower)))
           );
         });
       });
