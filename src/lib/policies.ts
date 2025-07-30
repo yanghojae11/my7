@@ -71,16 +71,28 @@ export async function getLatestPolicies(limit: number = 10): Promise<PolicyWithD
  */
 export async function getPoliciesByCategory(categorySlug: string, limit?: number): Promise<PolicyWithDetails[]> {
   try {
+    // First get the category ID
+    const { data: category, error: categoryError } = await supabase
+      .from('policy_categories')
+      .select('id')
+      .eq('slug', categorySlug)
+      .single();
+
+    if (categoryError || !category) {
+      console.error('Category not found:', categorySlug);
+      return [];
+    }
+
     let query = supabase
       .from('policies')
       .select(`
         *,
-        category:policy_categories!inner(*),
+        category:policy_categories(*),
         agency:government_agencies(*),
         author:profiles(*)
       `)
       .eq('status', 'published')
-      .eq('category.slug', categorySlug)
+      .eq('category_id', category.id)
       .order('published_at', { ascending: false });
 
     if (limit) {
