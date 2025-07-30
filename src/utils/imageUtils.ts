@@ -16,7 +16,7 @@ export function getArticleImageUrl(
   
   // 배열인 경우 첫 번째 항목 사용
   if (Array.isArray(imageUrl)) {
-    return imageUrl.length > 0 ? imageUrl[0] : '/placeholder-card.jpg';
+    return imageUrl.length > 0 && imageUrl[0] ? imageUrl[0] : '/placeholder-card.jpg';
   }
   
   // 문자열인데 배열 형태로 저장된 경우 (JSON 문자열)

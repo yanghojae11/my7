@@ -1,6 +1,6 @@
 // src/app/page.tsx - Client-side policy and article loading
 
-import PolicyArticlesLoader from '@/components/PolicyArticlesLoader';
+import ArticlesDataLoader from '@/components/ArticlesDataLoader';
 
 // ISR 설정 - 정책 업데이트 주기에 맞춰 조정
 export const revalidate = 900; // 15분마다 재생성
@@ -20,7 +20,7 @@ export const metadata = {
 
 
 export default function Home() {
-  return <PolicyArticlesLoader />;
+  return <ArticlesDataLoader />;
 }
 
 // 카테고리 설정 (컴포넌트에서 사용할 수 있도록 export)
