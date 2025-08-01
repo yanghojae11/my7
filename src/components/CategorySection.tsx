@@ -4,8 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import OptimizedImage from '@/components/OptimizedImage';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
-import { getPoliciesByCategory } from '@/lib/policies';
-import { PolicyWithDetails } from '@/types/database';
+import { getArticlesByCategory, Article } from '@/lib/articles';
 import { formatDateKorean } from '@/utils/dateUtils';
 
 interface CategorySectionProps {
@@ -25,25 +24,27 @@ export default function CategorySection({
   limit = 4,
   className = ''
 }: CategorySectionProps) {
-  const [policies, setPolicies] = useState<PolicyWithDetails[]>([]);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadPolicies = async () => {
+    const loadArticles = async () => {
       try {
         setLoading(true);
-        const data = await getPoliciesByCategory(categorySlug, limit);
-        setPolicies(data);
+        console.log(`[CategorySection] Loading articles for category: ${categorySlug}`);
+        const data = await getArticlesByCategory(categorySlug, limit);
+        console.log(`[CategorySection] Found ${data.length} articles for ${categorySlug}`);
+        setArticles(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '정책을 불러오는데 실패했습니다');
-        console.error(`Error loading policies for category ${categorySlug}:`, err);
+        setError(err instanceof Error ? err.message : '기사를 불러오는데 실패했습니다');
+        console.error(`Error loading articles for category ${categorySlug}:`, err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadPolicies();
+    loadArticles();
   }, [categorySlug, limit]);
 
   if (loading) {
@@ -58,7 +59,7 @@ export default function CategorySection({
     );
   }
 
-  if (error || policies.length === 0) {
+  if (error || articles.length === 0) {
     return null; // Don't show empty sections
   }
 
@@ -69,7 +70,7 @@ export default function CategorySection({
           {icon && <span className="mr-2">{icon}</span>}
           {title}
           <span className="ml-2 text-sm font-normal text-gray-500">
-            ({policies.length}개)
+            ({articles.length}개)
           </span>
         </h2>
         {description && (
@@ -78,86 +79,61 @@ export default function CategorySection({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        {policies.map((policy) => (
+        {articles.map((article) => (
           <Link 
-            key={policy.id} 
-            href={`/policy/${policy.slug}`}
+            key={article.id} 
+            href={`/article/${article.slug}`}
             className="group block"
           >
             <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 hover:border-blue-300">
-              {policy.featured_image_url && (
+              {article.image_url && (
                 <div className="relative h-48 mb-4 rounded-lg overflow-hidden">
                   <OptimizedImage
-                    src={policy.featured_image_url}
-                    alt={policy.image_alt || policy.title}
+                    src={Array.isArray(article.image_url) ? article.image_url[0] : article.image_url}
+                    alt={article.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
                   />
                 </div>
               )}
               
               <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                {policy.title}
+                {article.title}
               </h3>
               
-              {policy.summary && (
+              {article.body && (
                 <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                  {policy.summary}
+                  {article.body.substring(0, 120)}...
                 </p>
               )}
               
               <div className="space-y-2 text-xs text-gray-500">
-                {policy.application_period_end && (
-                  <div className="flex items-center">
-                    <span className="font-medium">신청기한:</span>
-                    <span className="ml-1">
-                      {formatDateKorean(policy.application_period_end)}
-                    </span>
-                  </div>
-                )}
+                <div className="flex items-center">
+                  <span className="font-medium">작성일:</span>
+                  <span className="ml-1">
+                    {formatDateKorean(article.created_at)}
+                  </span>
+                </div>
                 
-                {policy.target_audience && policy.target_audience.length > 0 && (
+                <div className="flex items-center">
+                  <span className="font-medium">조회수:</span>
+                  <span className="ml-1">{article.view_count}회</span>
+                </div>
+                
+                {article.keywords && article.keywords.length > 0 && (
                   <div className="flex items-start">
-                    <span className="font-medium">대상:</span>
+                    <span className="font-medium">키워드:</span>
                     <span className="ml-1 line-clamp-1">
-                      {policy.target_audience.join(', ')}
+                      {article.keywords.slice(0, 3).join(', ')}
                     </span>
-                  </div>
-                )}
-                
-                {policy.support_amount && (
-                  <div className="flex items-center">
-                    <span className="font-medium">지원금액:</span>
-                    <span className="ml-1 text-blue-600 font-semibold">
-                      {policy.support_amount}
-                    </span>
-                  </div>
-                )}
-                
-                {policy.agency?.name && (
-                  <div className="flex items-center">
-                    <span className="font-medium">담당기관:</span>
-                    <span className="ml-1">{policy.agency.name}</span>
                   </div>
                 )}
               </div>
 
-              {policy.policy_type && (
-                <div className="mt-3">
-                  <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                    policy.policy_type === 'support' ? 'bg-green-100 text-green-700' :
-                    policy.policy_type === 'benefit' ? 'bg-blue-100 text-blue-700' :
-                    policy.policy_type === 'subsidy' ? 'bg-purple-100 text-purple-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
-                    {policy.policy_type === 'support' ? '지원' :
-                     policy.policy_type === 'benefit' ? '혜택' :
-                     policy.policy_type === 'subsidy' ? '보조금' :
-                     policy.policy_type === 'information' ? '정보' :
-                     policy.policy_type === 'regulation' ? '규정' :
-                     '공지'}
-                  </span>
-                </div>
-              )}
+              <div className="mt-3">
+                <span className="inline-block px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-700">
+                  정책뉴스
+                </span>
+              </div>
             </div>
           </Link>
         ))}

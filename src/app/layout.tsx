@@ -122,7 +122,7 @@ export default function RootLayout({
         
         {/* DNS Prefetch 최적화 */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="//qfqwqvcmvbyxgzpokkla.supabase.co" />
+        <link rel="dns-prefetch" href="//oeyzvklspipwyqilndbo.supabase.co" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         
         {/* Favicon 및 아이콘 - ICO 제거 버전 */}

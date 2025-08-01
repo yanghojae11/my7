@@ -28,12 +28,12 @@ const nextConfig = {
   
   // 이미지 최적화
   images: {
-    domains: ['qfqwqvcmvbyxgzpokkla.supabase.co','api.dicebear.com'],
+    domains: ['oeyzvklspipwyqilndbo.supabase.co','api.dicebear.com'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'qfqwqvcmvbyxgzpokkla.supabase.co',
-        pathname: '/storage/v1/object/public/:path*',
+        hostname: 'oeyzvklspipwyqilndbo.supabase.co',
+        pathname: '/storage/v1/object/public/**',
       },
       {
         protocol: 'https',
@@ -65,7 +65,7 @@ const nextConfig = {
     return [
       {
         source: '/supabase-images/:path*',
-        destination: 'https://qfqwqvcmvbyxgzpokkla.supabase.co/storage/v1/object/public/:path*',
+        destination: 'https://oeyzvklspipwyqilndbo.supabase.co/storage/v1/object/public/:path*',
       },
       // RSS 피드만 유지
       {

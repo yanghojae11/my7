@@ -104,8 +104,12 @@ export async function getLatestArticles(limit: number = 10): Promise<Article[]> 
  * Get articles by category
  */
 export async function getArticlesByCategory(category: string, limit?: number): Promise<Article[]> {
+  // Map frontend category slugs to database categories
+  const dbCategory = CATEGORY_MAPPINGS[category] || category;
+  console.log(`[ARTICLES] Mapping category ${category} to ${dbCategory}`);
+  
   const params: Parameters<typeof getArticles>[0] = {
-    category,
+    category: dbCategory,
     sortBy: 'created_at',
     sortOrder: 'desc'
   };
@@ -130,13 +134,24 @@ export async function getPopularArticles(limit: number = 10): Promise<Article[]>
 
 // Category mappings for Korean categories
 export const CATEGORY_MAPPINGS: Record<string, string> = {
+  'startup-support': 'policy-news',
+  'housing-policy': 'policy-news', 
+  'employment-support': 'policy-news',
+  'education-policy': 'policy-news',
+  'welfare-benefits': 'policy-news',
+  'government-subsidies': 'policy-news',
+  'policy-news': 'policy-news'
+};
+
+// Reverse mapping for display purposes
+export const DISPLAY_CATEGORY_MAPPINGS: Record<string, string> = {
+  'policy-news': '정책뉴스',
   'startup-support': '창업지원',
   'housing-policy': '주택정책', 
   'employment-support': '취업지원',
   'education-policy': '교육정책',
   'welfare-benefits': '복지혜택',
-  'government-subsidies': '정부지원금',
-  'policy-news': '정책뉴스'
+  'government-subsidies': '정부지원금'
 };
 
 /**
